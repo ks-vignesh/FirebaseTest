@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build_android:
     runs-on: ubuntu-latest
 
     permissions:
@@ -73,13 +73,57 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+      # Build release APK
+      - name: Build AAB File
+        run: flutter build appbundle --release
+
       # Debug APK output path
       - name: Verify APK generated
         run: ls -la build/app/outputs/flutter-apk/
+
+      # Debug AAB output path
+      - name: Verify APK generated
+        run: ls -la build/app/outputs/bundle/release/
 
       # Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
+          name: App-release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      # Upload AAB artifact
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: App-release-AAB
+          path: build/app/outputs/bundle/release/app-release.aab
+
+  build_ios:
+    runs-on: macos-latest        # ← iOS MUST use macOS
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+      - name: Import Certificate
+        uses: apple-actions/import-codesign-certs@v2
+        with:
+          p12-file-base64: ${{ secrets.CERTIFICATES_P12 }}
+          p12-password: ${{ secrets.CERTIFICATES_P12_PASSWORD }}
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.ipa
+          path: build/ios/iphoneos/Runner.app
