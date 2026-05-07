@@ -9,11 +9,21 @@ on:
   pull_request:
 
   workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Select platform to build'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - android
+          - ios
 
 jobs:
   build_android:
     runs-on: ubuntu-latest
-
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'android' }}
     permissions:
       contents: read
 
@@ -99,8 +109,11 @@ jobs:
           name: App-release-AAB
           path: build/app/outputs/bundle/release/app-release.aab
 
+#-------------------IOS Config-------------------
   build_ios:
     runs-on: macos-latest        # ← iOS MUST use macOS
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == 'all' || inputs.platform == 'ios' }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -113,11 +126,11 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
-      - name: Import Certificate
-        uses: apple-actions/import-codesign-certs@v2
-        with:
-          p12-file-base64: ${{ secrets.CERTIFICATES_P12 }}
-          p12-password: ${{ secrets.CERTIFICATES_P12_PASSWORD }}
+#      - name: Import Certificate
+#        uses: apple-actions/import-codesign-certs@v2
+#        with:
+#          p12-file-base64: ${{ secrets.CERTIFICATES_P12 }}
+#          p12-password: ${{ secrets.CERTIFICATES_P12_PASSWORD }}
 
       - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
