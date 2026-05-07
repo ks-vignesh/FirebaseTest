@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "207506078212",
+    "project_id": "firebloc-7cb73",
+    "storage_bucket": "firebloc-7cb73.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:207506078212:android:25a19a20a7bfcfd079d351",
+        "android_client_info": {
+          "package_name": "com.example.fireblocdemo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA89lQTFhDMDLasElWBBW-0sn6b4vpNQ7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
