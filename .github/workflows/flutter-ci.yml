@@ -2,29 +2,83 @@ name: Flutter CI/CD
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - develop
+
   pull_request:
+
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+    permissions:
+      contents: read
 
-      - uses: subosito/flutter-action@v2
+    steps:
+      # Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Java (Required for Android/Gradle builds)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # Setup Flutter SDK
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.0'
+          cache: true
 
-      - run: flutter pub get
+      # Verify installed versions
+      - name: Check Flutter version
+        run: flutter --version
 
-      - run: flutter analyze
+      - name: Check Java version
+        run: java -version
 
-      - run: flutter test
+      # Cache pub dependencies for faster builds
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.pub-cache
+          key: ${{ runner.os }}-pub-cache-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pub-cache-
 
-      - run: flutter build apk --release
+      # Install dependencies
+      - name: Install dependencies
+        run: flutter pub get
 
-      - uses: actions/upload-artifact@v4
+      # Check formatting (optional but recommended)
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      # Static code analysis
+      - name: Analyze project source
+        run: flutter analyze
+
+      # Run unit/widget tests
+      - name: Run tests
+        run: flutter test --verbose
+
+      # Build release APK
+      - name: Build APK
+        run: flutter build apk --release
+
+      # Debug APK output path
+      - name: Verify APK generated
+        run: ls -la build/app/outputs/flutter-apk/
+
+      # Upload APK artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: build/app/outputs/flutter-apk/app-release.apk
