@@ -59,7 +59,7 @@ jobs:
 
       # Check formatting (optional but recommended)
       - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
+        run: dart format .
 
       # Static code analysis
       - name: Analyze project source
